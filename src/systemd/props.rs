@@ -8,7 +8,9 @@ use zbus::zvariant::Value as ZbusValue;
 use crate::fs::{hierarchies, MaxValue};
 use crate::systemd::utils::is_slice_unit;
 use crate::systemd::{
-    BLOCK_IO_ACCOUNTING, CPU_ACCOUNTING, DEFAULT_DEPENDENCIES, DEFAULT_DESCRIPTION, DELEGATE, DESCRIPTION, IO_ACCOUNTING, MEMORY_ACCOUNTING, PIDS, SLICE, TASKS_ACCOUNTING, TASKS_MAX, TIMEOUT_STOP_USEC, WANTS
+    BLOCK_IO_ACCOUNTING, CPU_ACCOUNTING, DEFAULT_DEPENDENCIES, DEFAULT_DESCRIPTION, DELEGATE,
+    DESCRIPTION, IO_ACCOUNTING, MEMORY_ACCOUNTING, PIDS, SLICE, TASKS_ACCOUNTING, TASKS_MAX,
+    TIMEOUT_STOP_USEC, WANTS,
 };
 
 pub type Property<'a> = (&'a str, ZbusValue<'a>);
@@ -137,7 +139,7 @@ impl PropertiesBuilder {
                     props.push((TASKS_MAX, ZbusValue::Str("infinity".into())));
                 }
                 MaxValue::Value(value) => {
-                    props.push((TASKS_MAX, ZbusValue::Str(value.to_string().into())));
+                    props.push((TASKS_MAX, ZbusValue::U64(value.unsigned_abs())));
                 }
             }
         }
