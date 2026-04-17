@@ -9,7 +9,7 @@ use zbus::Result;
 use crate::systemd::dbus::systemd_manager_proxy::ManagerProxyBlocking as SystemManager;
 
 pub(crate) fn systemd_manager_proxy<'a>() -> Result<SystemManager<'a>> {
-    let connection = Connection::system()?;
+    let connection = Connection::session()?;
     let proxy = SystemManager::new(&connection)?;
 
     Ok(proxy)
