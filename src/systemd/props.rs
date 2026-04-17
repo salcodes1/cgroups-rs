@@ -5,12 +5,10 @@
 
 use zbus::zvariant::Value as ZbusValue;
 
-use crate::fs::hierarchies;
+use crate::fs::{hierarchies, MaxValue};
 use crate::systemd::utils::is_slice_unit;
 use crate::systemd::{
-    BLOCK_IO_ACCOUNTING, CPU_ACCOUNTING, DEFAULT_DEPENDENCIES, DEFAULT_DESCRIPTION, DELEGATE,
-    DESCRIPTION, IO_ACCOUNTING, MEMORY_ACCOUNTING, PIDS, SLICE, TASKS_ACCOUNTING,
-    TIMEOUT_STOP_USEC, WANTS,
+    BLOCK_IO_ACCOUNTING, CPU_ACCOUNTING, DEFAULT_DEPENDENCIES, DEFAULT_DESCRIPTION, DELEGATE, DESCRIPTION, IO_ACCOUNTING, MEMORY_ACCOUNTING, PIDS, SLICE, TASKS_ACCOUNTING, TASKS_MAX, TIMEOUT_STOP_USEC, WANTS
 };
 
 pub type Property<'a> = (&'a str, ZbusValue<'a>);
@@ -32,6 +30,7 @@ pub struct PropertiesBuilder {
     delegate: Option<bool>,
     pids: Option<Vec<u32>>,
     timeout_stop_usec: Option<u64>,
+    tasks_max: Option<MaxValue>,
 }
 
 impl PropertiesBuilder {
@@ -69,6 +68,11 @@ impl PropertiesBuilder {
 
     pub fn task_accounting(mut self, enabled: bool) -> Self {
         self.task_accounting = Some(enabled);
+        self
+    }
+
+    pub fn task_max(mut self, max: MaxValue) -> Self {
+        self.tasks_max = Some(max);
         self
     }
 
@@ -125,6 +129,17 @@ impl PropertiesBuilder {
 
         if let Some(task_accounting) = self.task_accounting {
             props.push((TASKS_ACCOUNTING, ZbusValue::Bool(task_accounting)));
+        }
+
+        if let Some(tasks_max) = self.tasks_max {
+            match tasks_max {
+                MaxValue::Max => {
+                    props.push((TASKS_MAX, ZbusValue::Str("infinity".into())));
+                }
+                MaxValue::Value(value) => {
+                    props.push((TASKS_MAX, ZbusValue::Str(value.to_string().into())));
+                }
+            }
         }
 
         if let Some(io_accounting) = self.io_accounting {
